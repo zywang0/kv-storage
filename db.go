@@ -1,6 +1,7 @@
 package kv_project
 
 import (
+	"errors"
 	"kv-project/data"
 	"kv-project/index"
 	"sync"
@@ -9,7 +10,7 @@ import (
 type DB struct {
 	options      Options
 	mu           *sync.RWMutex
-	activeFile   *data.File            // can be used to write
+	activeFile   *data.File            // can be used for append writing
 	inactiveFile map[uint32]*data.File // only can be used to read
 	index        index.Indexer
 }
@@ -142,5 +143,15 @@ func (db *DB) setActiveDataFile() error {
 		return err
 	}
 	db.activeFile = openDataFile
+	return nil
+}
+
+func checkOptions(options Options) error {
+	if options.DirPath == "" {
+		return errors.New("directory path cannot be empty")
+	}
+	if options.DataFileSize <= 0 {
+		return errors.New("data file size should be greater than 0")
+	}
 	return nil
 }
