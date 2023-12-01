@@ -28,4 +28,7 @@ Key: key | Value: ValuePos {Fid, Offset, Size}
 
 Standard I/O, MMAP I/O
 
-####         
+#### Database Startup Process
+
+- Step 1: Load the files in the data directory and open their file descriptors.
+- Step 2: Traverse the contents of the data file to construct an in-memory index.

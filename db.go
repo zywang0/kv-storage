@@ -4,6 +4,7 @@ import (
 	"errors"
 	"kv-project/data"
 	"kv-project/index"
+	"os"
 	"sync"
 )
 
@@ -13,6 +14,41 @@ type DB struct {
 	activeFile   *data.File            // can be used for append writing
 	inactiveFile map[uint32]*data.File // only can be used to read
 	index        index.Indexer
+}
+
+// Open open bitcask database storage instance
+func Open(options Options) (*DB, error) {
+	//verify user options
+	if err := checkOptions(options); err != nil {
+		return nil, err
+	}
+
+	//check if data file exists
+	if _, err := os.Stat(options.DirPath); os.IsNotExist(err) {
+		//create this file if it doesn't exist
+		if err := os.MkdirAll(options.DirPath, os.ModePerm); err != nil {
+			return nil, err
+		}
+	}
+
+	//initialize database instance
+	db := &DB{
+		options:      options,
+		mu:           new(sync.RWMutex),
+		inactiveFile: make(map[uint32]*data.File),
+		index:        index.NewIndexer(options.IndexType),
+	}
+
+	//load the data file
+	if err := db.loadDataFiles(); err != nil {
+		return nil, err
+	}
+
+	//load index from data file
+	if err := db.loadIndexFromDataFiles(); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
 
 // Put write/update k-v data
@@ -143,6 +179,14 @@ func (db *DB) setActiveDataFile() error {
 		return err
 	}
 	db.activeFile = openDataFile
+	return nil
+}
+
+func (db *DB) loadDataFiles() error {
+	return nil
+}
+
+func (db *DB) loadIndexFromDataFiles() error {
 	return nil
 }
 

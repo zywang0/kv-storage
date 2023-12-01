@@ -9,4 +9,14 @@ type Options struct {
 
 	//Check if data is persistent on every write
 	SyncWrites bool
+
+	//index type
+	IndexType IndexerType
 }
+
+type IndexerType = int8
+
+const (
+	Btree IndexerType = iota + 1
+	ART
+)
