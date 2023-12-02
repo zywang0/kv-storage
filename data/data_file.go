@@ -24,6 +24,6 @@ func (f *File) Write(buf []byte) error {
 	return nil
 }
 
-func (f *File) ReadLogRecord(offset int64) (*LogRecord, error) {
-	return nil, nil
+func (f *File) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
+	return nil, 0, nil
 }

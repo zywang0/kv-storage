@@ -2,6 +2,7 @@ package kv_project
 
 import (
 	"errors"
+	"io"
 	"kv-project/data"
 	"kv-project/index"
 	"os"
@@ -107,7 +108,7 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 	}
 
 	//read data based on offset
-	record, err := dataFile.ReadLogRecord(recordPos.Offset)
+	record, _, err := dataFile.ReadLogRecord(recordPos.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +223,54 @@ func (db *DB) loadDataFiles() error {
 	return nil
 }
 
+// loadIndexFromDataFiles iterate over each fileID and update index
 func (db *DB) loadIndexFromDataFiles() error {
+	//no files in the database
+	if len(db.fileIds) == 0 {
+		return nil
+	}
+
+	//iterate over each fileID
+	for i, fid := range db.fileIds {
+		var fileId = uint32(fid)
+		var dataFile *data.File
+		if fileId == db.activeFile.FileID {
+			dataFile = db.activeFile
+		} else {
+			dataFile = db.inactiveFile[fileId]
+		}
+
+		var offset int64 = 0
+		//get record through offset
+		for {
+			record, size, err := dataFile.ReadLogRecord(offset)
+			if err != nil {
+				// reaching the end of record
+				if err == io.EOF {
+					break
+				}
+				return err
+			}
+
+			logRecordPos := &data.LogRecordPos{
+				Fid:    fileId,
+				Offset: offset,
+			}
+			if record.Type == data.LogRecordDeleted {
+				db.index.Delete(record.Key)
+			} else {
+				db.index.Put(record.Key, logRecordPos)
+			}
+
+			//update offset so that it can be read from the next new position
+			offset += size
+		}
+
+		//update write offset of this active file when reaching the end of the file
+		if i == len(db.fileIds)-1 {
+			db.activeFile.WriteOffset = offset
+		}
+	}
 	return nil
 }
 
