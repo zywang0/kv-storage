@@ -21,8 +21,8 @@ type DB struct {
 	fileIds      []int
 }
 
-// Open open bitcask database storage instance
-func Open(options Options) (*DB, error) {
+// Start bitcask database storage instance startup process
+func Start(options Options) (*DB, error) {
 	//verify user options
 	if err := checkOptions(options); err != nil {
 		return nil, err
