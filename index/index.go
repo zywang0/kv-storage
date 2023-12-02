@@ -25,7 +25,7 @@ func NewIndexer(tp IndexerType) Indexer {
 	case Btree:
 		return NewBtree()
 	case ART:
-		//TODO
+		// TODO: Adaptive Radix Tree Index
 		return nil
 	default:
 		panic("unsupported index type")

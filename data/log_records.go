@@ -25,5 +25,6 @@ type LogRecordPos struct {
 
 // EncodeLogRecord return byte array and its size
 func EncodeLogRecord(record *LogRecord) ([]byte, int64) {
+	// TODO
 	return nil, 0
 }
