@@ -122,6 +122,34 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 
 }
 
+func (db *DB) Delete(key []byte) error {
+	//check if the key is valid
+	if len(key) == 0 {
+		return ErrKeyIsEmpty
+	}
+
+	//get value through the key of index
+	recordPos := db.index.Get(key)
+	//check if key exists
+	//data file will inflate if the user keeps deleting a non-existent key
+	if recordPos == nil {
+		return ErrKeyNotFound
+	}
+
+	record := &data.LogRecord{Key: key, Type: data.LogRecordDeleted}
+	if _, err := db.appendLogRecord(record); err != nil {
+		return err
+	}
+
+	//update memory index
+	deleted := db.index.Delete(key)
+	if !deleted {
+		return ErrIndexUpdateFailed
+	}
+
+	return nil
+}
+
 // appendLogRecord write data into active file, return the position of this write
 func (db *DB) appendLogRecord(record *data.LogRecord) (*data.LogRecordPos, error) {
 	db.mu.Lock()
@@ -256,10 +284,14 @@ func (db *DB) loadIndexFromDataFiles() error {
 				Fid:    fileId,
 				Offset: offset,
 			}
+			var status bool
 			if record.Type == data.LogRecordDeleted {
-				db.index.Delete(record.Key)
+				status = db.index.Delete(record.Key)
 			} else {
-				db.index.Put(record.Key, logRecordPos)
+				status = db.index.Put(record.Key, logRecordPos)
+			}
+			if !status {
+				return ErrIndexUpdateFailed
 			}
 
 			//update offset so that it can be read from the next new position
