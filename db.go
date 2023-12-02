@@ -5,6 +5,9 @@ import (
 	"kv-project/data"
 	"kv-project/index"
 	"os"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -14,6 +17,7 @@ type DB struct {
 	activeFile   *data.File            // can be used for append writing
 	inactiveFile map[uint32]*data.File // only can be used to read
 	index        index.Indexer
+	fileIds      []int
 }
 
 // Open open bitcask database storage instance
@@ -182,7 +186,39 @@ func (db *DB) setActiveDataFile() error {
 	return nil
 }
 
+// loadDataFiles load data files from the disk
 func (db *DB) loadDataFiles() error {
+	dir, err := os.ReadDir(db.options.DirPath)
+	if err != nil {
+		return err
+	}
+	var fileIds []int
+	//iterate over each file in directory to find the file ending in `.data`
+	for _, entry := range dir {
+		if strings.HasSuffix(entry.Name(), data.FileNameSuffix) {
+			splitNames := strings.Split(entry.Name(), ".")
+			fileId, err := strconv.Atoi(splitNames[0])
+			if err != nil {
+				return ErrDataDirCorrupted
+			}
+			fileIds = append(fileIds, fileId)
+		}
+	}
+	sort.Ints(fileIds)
+	db.fileIds = fileIds
+
+	//iterate over each file id
+	for i, fid := range fileIds {
+		dataFile, err := data.OpenDataFile(db.options.DirPath, uint32(fid))
+		if err != nil {
+			return err
+		}
+		if i == len(fileIds)-1 {
+			db.activeFile = dataFile
+		} else {
+			db.inactiveFile[uint32(fid)] = dataFile
+		}
+	}
 	return nil
 }
 

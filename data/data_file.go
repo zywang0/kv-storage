@@ -4,6 +4,8 @@ import (
 	"kv-project/fio"
 )
 
+const FileNameSuffix = ".data"
+
 type File struct {
 	FileID      uint32
 	WriteOffset int64

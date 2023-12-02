@@ -12,4 +12,6 @@ var (
 	ErrDataFileNotFound = errors.New("data file is not found")
 
 	ErrDataFileDeleted = errors.New("data file is deleted")
+
+	ErrDataDirCorrupted = errors.New("database directory may be corrupted")
 )
