@@ -1,6 +1,9 @@
 package data
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"hash/crc32"
+)
 
 type LogRecordType = byte
 
@@ -37,8 +40,30 @@ type LogRecordHeader struct {
 
 // EncodeLogRecord return byte array and its size
 func EncodeLogRecord(record *LogRecord) ([]byte, int64) {
-	// TODO
-	return nil, 0
+	header := make([]byte, maxLogRecordHeaderSize)
+	//store type
+	header[4] = record.Type
+
+	//store key/value size
+	var index = 5
+	index += binary.PutVarint(header[index:], int64(len(record.Key)))
+	index += binary.PutVarint(header[index:], int64(len(record.Value)))
+
+	var encRecordSize = index + len(record.Key) + len(record.Value)
+	encBytes := make([]byte, encRecordSize)
+
+	//store header
+	copy(encBytes[:index], header[:index])
+
+	//store key/value
+	copy(encBytes[index:], record.Key)
+	copy(encBytes[index+len(record.Key):], record.Value)
+
+	//calculate and store crc value
+	crc := crc32.ChecksumIEEE(encBytes[4:])
+	binary.LittleEndian.PutUint32(encBytes[:4], crc)
+
+	return encBytes, int64(encRecordSize)
 }
 
 func DecodeLogRecord(buff []byte) (*LogRecordHeader, int64) {
