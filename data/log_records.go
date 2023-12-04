@@ -67,8 +67,25 @@ func EncodeLogRecord(record *LogRecord) ([]byte, int64) {
 }
 
 func DecodeLogRecord(buff []byte) (*LogRecordHeader, int64) {
-	// TODO
-	return nil, 0
+	if len(buff) <= 4 {
+		return nil, 0
+	}
+
+	header := &LogRecordHeader{
+		crc:        binary.LittleEndian.Uint32(buff[:4]),
+		recordType: buff[4],
+	}
+
+	var index = 5
+	keySize, size := binary.Varint(buff[index:])
+	header.keySize = uint32(keySize)
+	index += size
+
+	valueSize, size := binary.Varint(buff[index:])
+	header.valueSize = uint32(valueSize)
+	index += size
+
+	return header, int64(index)
 }
 
 func GetRecordCRC(record *LogRecord, header []byte) uint32 {
