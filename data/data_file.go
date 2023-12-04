@@ -3,6 +3,7 @@ package data
 import (
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"kv-project/fio"
 	"path/filepath"
@@ -74,7 +75,7 @@ func (f *File) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
 		record.Value = kvBuff[:valueSize]
 	}
 
-	recordCRC := GetRecordCRC(record, headerBuff)
+	recordCRC := GetRecordCRC(record, headerBuff[crc32.Size:headerSize])
 	if recordCRC != header.crc {
 		return nil, 0, errors.New("invalid crc value")
 	}
