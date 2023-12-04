@@ -18,16 +18,18 @@ func OpenDataFile(dirPath string, fileID uint32) (*File, error) {
 }
 
 func (f *File) Sync() error {
-	// TODO
-	return nil
+	return f.IOManager.Sync()
 }
 
 func (f *File) Write(buf []byte) error {
-	// TODO
+	writeBytes, err := f.IOManager.Write(buf)
+	if err != nil {
+		return err
+	}
+	f.WriteOffset += int64(writeBytes)
 	return nil
 }
 
-func (f *File) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
-	// TODO
-	return nil, 0, nil
+func (f *File) Close() error {
+	return f.IOManager.Close()
 }
