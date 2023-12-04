@@ -1,7 +1,9 @@
 package data
 
 import (
+	"fmt"
 	"kv-project/fio"
+	"path/filepath"
 )
 
 const FileNameSuffix = ".data"
@@ -12,9 +14,14 @@ type File struct {
 	IOManager   fio.IOManager
 }
 
+// OpenDataFile open a new data file
 func OpenDataFile(dirPath string, fileID uint32) (*File, error) {
-	// TODO
-	return nil, nil
+	fileName := filepath.Join(dirPath, fmt.Sprintf("%09d", fileID)+FileNameSuffix)
+	ioManager, err := fio.NewFileIOManager(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return &File{FileID: fileID, WriteOffset: 0, IOManager: ioManager}, nil
 }
 
 func (f *File) Sync() error {
