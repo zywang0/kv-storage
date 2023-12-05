@@ -72,7 +72,7 @@ func (f *File) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
 			return nil, 0, err
 		}
 		record.Key = kvBuff[:keySize]
-		record.Value = kvBuff[:valueSize]
+		record.Value = kvBuff[keySize:]
 	}
 
 	recordCRC := GetRecordCRC(record, headerBuff[crc32.Size:headerSize])

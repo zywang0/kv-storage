@@ -130,8 +130,8 @@ func (db *DB) Delete(key []byte) error {
 
 	//get value through the key of index
 	recordPos := db.index.Get(key)
-	//check if key exists
-	//data file will inflate if the user keeps deleting a non-existent key
+	//check if recordPos exists
+	//data file will inflate if the user keeps deleting a non-existent key-value entry
 	if recordPos == nil {
 		return ErrKeyNotFound
 	}
