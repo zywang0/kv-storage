@@ -66,7 +66,7 @@ func EncodeLogRecord(record *LogRecord) ([]byte, int64) {
 	return encBytes, int64(encRecordSize)
 }
 
-func DecodeLogRecord(buff []byte) (*LogRecordHeader, int64) {
+func DecodeLogRecordHeader(buff []byte) (*LogRecordHeader, int64) {
 	if len(buff) <= 4 {
 		return nil, 0
 	}

@@ -48,7 +48,7 @@ func (f *File) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
 	}
 
 	//get final real header and its size
-	header, headerSize := DecodeLogRecord(headerBuff)
+	header, headerSize := DecodeLogRecordHeader(headerBuff)
 
 	//edge case
 	if header == nil {
