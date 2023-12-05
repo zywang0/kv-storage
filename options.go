@@ -20,3 +20,10 @@ const (
 	Btree IndexerType = iota + 1
 	ART
 )
+
+var DefaultOptions = Options{
+	DirPath:      "/tmp/bitcaskDemo",
+	DataFileSize: 256 * 1024 * 1024,
+	SyncWrites:   false,
+	IndexType:    Btree,
+}
