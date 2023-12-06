@@ -56,6 +56,24 @@ func Start(options Options) (*DB, error) {
 	return db, nil
 }
 
+func (db *DB) Close() error {
+	if db.activeFile == nil {
+		return nil
+	}
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	if err := db.activeFile.Close(); err != nil {
+		return err
+	}
+	for _, file := range db.inactiveFile {
+		if err := file.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Put write/update k-v data
 func (db *DB) Put(key []byte, value []byte) error {
 	//check if the key is valid
