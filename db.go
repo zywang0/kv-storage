@@ -301,6 +301,7 @@ func (db *DB) loadIndexFromDataFiles() error {
 			logRecordPos := &data.LogRecordPos{
 				Fid:    fileId,
 				Offset: offset,
+				Size:   uint32(size),
 			}
 			var status bool
 			if record.Type == data.LogRecordDeleted {
