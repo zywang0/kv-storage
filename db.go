@@ -74,6 +74,15 @@ func (db *DB) Close() error {
 	return nil
 }
 
+func (db *DB) Sync() error {
+	if db.activeFile == nil {
+		return nil
+	}
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return db.activeFile.Sync()
+}
+
 // Put write/update k-v data
 func (db *DB) Put(key []byte, value []byte) error {
 	//check if the key is valid
