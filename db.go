@@ -13,12 +13,12 @@ import (
 )
 
 type DB struct {
-	options      Options
-	mu           *sync.RWMutex
-	activeFile   *data.File            // can be used for append writing
-	inactiveFile map[uint32]*data.File // only can be used to read
-	index        index.Indexer
-	fileIds      []int
+	options       Options
+	mu            *sync.RWMutex
+	activeFile    *data.File            // can be used for append writing
+	inactiveFiles map[uint32]*data.File // only can be used to read
+	index         index.Indexer
+	fileIds       []int
 }
 
 // Start bitcask database storage instance startup process
@@ -38,10 +38,10 @@ func Start(options Options) (*DB, error) {
 
 	//initialize database instance
 	db := &DB{
-		options:      options,
-		mu:           new(sync.RWMutex),
-		inactiveFile: make(map[uint32]*data.File),
-		index:        index.NewIndexer(options.IndexType),
+		options:       options,
+		mu:            new(sync.RWMutex),
+		inactiveFiles: make(map[uint32]*data.File),
+		index:         index.NewIndexer(options.IndexType),
 	}
 
 	//load the data file
@@ -66,7 +66,7 @@ func (db *DB) Close() error {
 	if err := db.activeFile.Close(); err != nil {
 		return err
 	}
-	for _, file := range db.inactiveFile {
+	for _, file := range db.inactiveFiles {
 		if err := file.Close(); err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 	if recordPos.Fid == db.activeFile.FileID {
 		dataFile = db.activeFile
 	} else {
-		dataFile = db.inactiveFile[recordPos.Fid]
+		dataFile = db.inactiveFiles[recordPos.Fid]
 	}
 
 	//check if dataFile exists
@@ -192,7 +192,7 @@ func (db *DB) appendLogRecord(record *data.LogRecord) (*data.LogRecordPos, error
 		}
 
 		//change activeFile to inactive
-		db.inactiveFile[db.activeFile.FileID] = db.activeFile
+		db.inactiveFiles[db.activeFile.FileID] = db.activeFile
 
 		//open a new data file
 		if err := db.setActiveDataFile(); err != nil {
@@ -263,7 +263,7 @@ func (db *DB) loadDataFiles() error {
 		if i == len(fileIds)-1 {
 			db.activeFile = dataFile
 		} else {
-			db.inactiveFile[uint32(fid)] = dataFile
+			db.inactiveFiles[uint32(fid)] = dataFile
 		}
 	}
 	return nil
@@ -283,7 +283,7 @@ func (db *DB) loadIndexFromDataFiles() error {
 		if fileId == db.activeFile.FileID {
 			dataFile = db.activeFile
 		} else {
-			dataFile = db.inactiveFile[fileId]
+			dataFile = db.inactiveFiles[fileId]
 		}
 
 		var offset int64 = 0
