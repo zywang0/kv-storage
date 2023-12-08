@@ -1,5 +1,7 @@
 package kv_project
 
+import "os"
+
 type Options struct {
 	//data directory
 	DirPath string
@@ -22,7 +24,7 @@ const (
 )
 
 var DefaultOptions = Options{
-	DirPath:      "/tmp/bitcaskDemo",
+	DirPath:      os.TempDir(),
 	DataFileSize: 256 * 1024 * 1024,
 	SyncWrites:   false,
 	IndexType:    Btree,
