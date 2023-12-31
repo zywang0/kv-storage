@@ -48,3 +48,34 @@ func TestBTree_Delete(t *testing.T) {
 	assert.True(t, res4)
 
 }
+
+func TestBTree_Iterator(t *testing.T) {
+	btree := NewBtree()
+
+	iterator1 := btree.Iterator(false)
+	assert.Equal(t, false, iterator1.Valid())
+
+	btree.Put([]byte("a"), &data.LogRecordPos{Fid: 1, Offset: 100})
+	iterator2 := btree.Iterator(false)
+	assert.Equal(t, true, iterator2.Valid())
+
+	iterator2.Next()
+	assert.Equal(t, false, iterator2.Valid())
+
+	btree.Put([]byte("b"), &data.LogRecordPos{Fid: 1, Offset: 100})
+	btree.Put([]byte("c"), &data.LogRecordPos{Fid: 1, Offset: 100})
+	btree.Put([]byte("d"), &data.LogRecordPos{Fid: 1, Offset: 100})
+	iterator3 := btree.Iterator(false)
+	for iterator3.Rewind(); iterator3.Valid(); iterator3.Next() {
+		assert.NotNil(t, iterator3.Key())
+	}
+
+	iterator4 := btree.Iterator(true)
+	for iterator4.Rewind(); iterator4.Valid(); iterator4.Next() {
+		assert.NotNil(t, iterator4.Key())
+	}
+
+	iterator5 := btree.Iterator(false)
+	iterator5.Seek([]byte("c"))
+	assert.NotNil(t, iterator5.Key())
+}
