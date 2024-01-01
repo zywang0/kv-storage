@@ -120,33 +120,7 @@ func (db *DB) Get(key []byte) ([]byte, error) {
 	if recordPos == nil {
 		return nil, ErrKeyNotFound
 	}
-
-	var dataFile *data.File
-	//check if the record is in the active file
-	if recordPos.Fid == db.activeFile.FileID {
-		dataFile = db.activeFile
-	} else {
-		dataFile = db.inactiveFiles[recordPos.Fid]
-	}
-
-	//check if dataFile exists
-	if dataFile == nil {
-		return nil, ErrDataFileNotFound
-	}
-
-	//read data based on offset
-	record, _, err := dataFile.ReadLogRecord(recordPos.Offset)
-	if err != nil {
-		return nil, err
-	}
-
-	//check if the record deleted
-	if record.Type == data.LogRecordDeleted {
-		return nil, ErrDataFileDeleted
-	}
-
-	return record.Value, nil
-
+	return db.getValueByPosition(recordPos)
 }
 
 func (db *DB) Delete(key []byte) error {
@@ -332,6 +306,34 @@ func (db *DB) loadIndexFromDataFiles() error {
 		}
 	}
 	return nil
+}
+
+func (db *DB) getValueByPosition(recordPos *data.LogRecordPos) ([]byte, error) {
+	var dataFile *data.File
+	//check if the record is in the active file
+	if recordPos.Fid == db.activeFile.FileID {
+		dataFile = db.activeFile
+	} else {
+		dataFile = db.inactiveFiles[recordPos.Fid]
+	}
+
+	//check if dataFile exists
+	if dataFile == nil {
+		return nil, ErrDataFileNotFound
+	}
+
+	//read data based on offset
+	record, _, err := dataFile.ReadLogRecord(recordPos.Offset)
+	if err != nil {
+		return nil, err
+	}
+
+	//check if the record deleted
+	if record.Type == data.LogRecordDeleted {
+		return nil, ErrDataFileDeleted
+	}
+
+	return record.Value, nil
 }
 
 func checkOptions(options Options) error {
