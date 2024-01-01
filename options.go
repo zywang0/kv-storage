@@ -29,3 +29,15 @@ var DefaultOptions = Options{
 	SyncWrites:   false,
 	IndexType:    Btree,
 }
+
+type IteratorOptions struct {
+	Prefix  []byte
+	Reverse bool
+}
+
+var DefaultIteratorOptions = IteratorOptions{
+	// Prefix specifies the prefix value for keys to iterate over. Default is empty.
+	Prefix: nil,
+	// Reverse indicates whether to iterate in reverse order. Default is false for forward iteration.
+	Reverse: false,
+}
