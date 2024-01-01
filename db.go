@@ -347,6 +347,24 @@ func (db *DB) ListKeys() [][]byte {
 	return keys
 }
 
+func (db *DB) Fold(f func(key []byte, value []byte) bool) error {
+	db.mu.RLock()
+	defer db.mu.RUnlock()
+
+	iterator := db.index.Iterator(false)
+	for iterator.Rewind(); iterator.Valid(); iterator.Next() {
+		value, err := db.getValueByPosition(iterator.Value())
+		if err != nil {
+			return err
+		}
+
+		if !f(iterator.Key(), value) {
+			break
+		}
+	}
+	return nil
+}
+
 func checkOptions(options Options) error {
 	if options.DirPath == "" {
 		return errors.New("directory path cannot be empty")
