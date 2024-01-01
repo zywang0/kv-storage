@@ -336,6 +336,17 @@ func (db *DB) getValueByPosition(recordPos *data.LogRecordPos) ([]byte, error) {
 	return record.Value, nil
 }
 
+func (db *DB) ListKeys() [][]byte {
+	iterator := db.index.Iterator(false)
+	keys := make([][]byte, db.index.Size())
+	var idx int
+	for iterator.Rewind(); iterator.Valid(); iterator.Next() {
+		keys[idx] = iterator.Key()
+		idx++
+	}
+	return keys
+}
+
 func checkOptions(options Options) error {
 	if options.DirPath == "" {
 		return errors.New("directory path cannot be empty")
